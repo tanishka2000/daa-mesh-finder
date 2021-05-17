@@ -1,3 +1,6 @@
+import networkx as nx
+import matplotlib.pyplot as plt
+
 class graphClique:
 
     def __init__(self,
@@ -83,8 +86,9 @@ class graphClique:
                 frequency[item] += 1
             else: #true 
                 frequency[item] = 1 
-        #print(frequency)
+        print(frequency)
         
+        #storing the max frequency and corresponding number in a list
         max_freq = max(frequency)
         max_repeating_color = frequency.index(max_freq) 
         self.max_freq_color = [max_freq, max_repeating_color]
@@ -116,6 +120,7 @@ class graphClique:
           return True
         else:
           return False
+
     def maxMeshGraph(self) -> bool:
       """
       :return: the final graph which is a Mesh network
@@ -133,6 +138,31 @@ class graphClique:
         return False
 
       return True
+
+    def addEdge(self, node1, node2)->None:
+      """
+      node1 -> Source node where the edge begins from
+      node2 -> Source node where the edge ends at
+      :return: None
+      """
+      temp_edge = [node1, node2]
+      self.graph_to_visualise.append(temp_edge)
+          
+    def visualize(self) -> None:
+      """
+      :return: None
+      """
+      cur_graph = nx.Graph()
+      cur_graph.add_edges_from(self.graph_to_visualise)
+      nx.draw_networkx(cur_graph, node_color="purple", edge_color="black", font_size = 16, font_color="white", node_size=800, width=2.0)
+      plt.figure(figsize=(3, 3))
+      plt.show()
+
+    def displayMesh(self, graph_to_visualise : dict)->None:
+        for parent_node in graph_to_visualise:
+            for adj_node in graph_to_visualise[parent_node]:
+                self.addEdge(parent_node, adj_node)
+        self.visualize()
 
 def testGraphClique()->None:
     """
@@ -153,6 +183,7 @@ def testGraphClique()->None:
 
     stor = graph_clique_obj.maxMeshGraph()
     print(graph_clique_obj.mesh_graph)
+    graph_clique_obj.displayMesh(input_graph)
     #print(graph_clique_obj.getMaxClique())
 
 if __name__ == "__main__":
