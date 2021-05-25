@@ -1,16 +1,10 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import json
 
 class graphClique:
 
-    def __init__(self,
-                 graph: dict,
-                 num_of_nodes: int) -> None:
-        """
-        :params graph: Input graph
-        :params num_of_nodes: total nodes in graph
-        return : None
-        """
+    def __init__(self, graph, num_of_nodes):
         self.graph = graph
         self.num_of_nodes = num_of_nodes
         self.node_colors = [-1] * len(graph)
@@ -18,11 +12,7 @@ class graphClique:
         self.mesh_graph = dict()
         self.graph_to_visualise = []
 
-    def getCompliment(self) -> dict:
-        """
-        Compliments a graph
-        :return: complimented graph
-        """
+    def getCompliment(self):
         compliment_graph = dict()
 
         for vertex in self.graph:
@@ -34,30 +24,14 @@ class graphClique:
 
         return compliment_graph
 
-    def isValidColoring(self,
-                        graph: dict,
-                        cur_vertex: int) -> bool:
-        """
-        :params graph: Input graph
-        :params cur_vertex: node to process
-
-        :return: whether current vertex has right color or not
-        """
-
+    def isValidColoring(self, graph, cur_vertex):
         for neighbour in graph[cur_vertex]:
             if (self.node_colors[neighbour] == self.node_colors[cur_vertex]):
                 return False
         return True
 
-    def colorGraph(self,
-                   cur_vertex: int,
-                   graph: dict) -> bool:
-        """
-        :params graph: Input graph
-        :params cur_vertex: int
-
-        :return: whether graph is colored or not
-        """
+    def colorGraph(self, cur_vertex, graph):
+        print("Graph colors: ", self.node_colors)
         for neighbour in graph[cur_vertex]:
             if (self.node_colors[neighbour] != -1):
                 continue
@@ -76,10 +50,6 @@ class graphClique:
         return True
 
     def maxRepeatingColor(self):
-        """
-        :return: frequency of maximum used color for graph coloring from node_colors
-        """
-        
         frequency = [0]*len(self.graph)
         for item in self.node_colors:
             if (frequency[item]>0): 
@@ -93,38 +63,37 @@ class graphClique:
         max_repeating_color = frequency.index(max_freq) 
         self.max_freq_color = [max_freq, max_repeating_color]
 
-    def getSizeOfMaximumIndependentSet(self, graph: dict) -> bool:
-        """
+    def checkColor(self):
+        node_colors_list = []
+        for color in range(self.num_of_nodes):
+            node_colors_list.append(color)
+        
+        if sorted(node_colors_list) == sorted(self.node_colors):
+            return True 
+        return False
 
-         :params graph: Input graph
-         :return: maximum size of independant set in graph
-        """
+    def getSizeOfMaximumIndependentSet(self, graph):
         first_vertex = list(graph.keys())[0]
 
         self.node_colors[first_vertex] = 0
         if (self.colorGraph(first_vertex, graph)):
+            if(self.checkColor()):
+                return False
             self.maxRepeatingColor()
             return True
 
         return False
 
-    def getSizeOfMaxClique(self) -> bool:
-        """
-
-        :return: maximum size of clique in graph
-        """
-
+    def getSizeOfMaxClique(self):
         compliment_graph = self.getCompliment()
+        print(compliment_graph)
         if (self.getSizeOfMaximumIndependentSet(compliment_graph)):
           #max_color_freq updated
           return True
         else:
           return False
 
-    def maxMeshGraph(self) -> bool:
-      """
-      :return: the final graph which is a Mesh network
-      """
+    def maxMeshGraph(self):
       if (self.getSizeOfMaxClique()):
         for node in self.graph:
           if self.node_colors[node] == self.max_freq_color[1]:
@@ -139,20 +108,12 @@ class graphClique:
 
       return True
 
-    def addEdge(self, node1, node2)->None:
-      """
-      node1 -> Source node where the edge begins from
-      node2 -> Source node where the edge ends at
-      :return: None
-      """
+    def addEdge(self, node1, node2):
       temp_edge = [node1, node2]
       self.graph_to_visualise.append(temp_edge)
           
     def visualize(self, 
-                  final_mesh : dict) -> None:
-      """
-      :return: None
-      """
+                  final_mesh):
       cur_graph = nx.Graph()
       cur_graph.add_edges_from(self.graph_to_visualise)
       node_map = []
@@ -165,35 +126,72 @@ class graphClique:
       plt.figure(figsize=(3, 3))
       plt.show()
 
-    def displayMesh(self, 
-                    graph_to_visualise : dict,
-                    final_mesh : dict)->None:
+    def displayMesh(self, graph_to_visualise, final_mesh):
       for parent_node in graph_to_visualise:
         for adj_node in graph_to_visualise[parent_node]:
           self.addEdge(parent_node, adj_node)
       self.visualize(final_mesh)
-def testGraphClique()->None:
-    """
-    A function to test graph clique component
-    """
-    import json
-    input_graph = dict()
-    # Opening JSON file
-    with open('input1.json') as json_file:
-        data = json.load(json_file)
-        for i in data:
-          j = int(i)
-          input_graph[j] = data[i]
 
-    num_of_nodes= len(input_graph)
+'''
+class visualizeAllCliques:
+    def __init__(self,graph,node_colors):
+        self.graph = graph
+        self.node_colors = node_colors
+        self.graph_to_visualise = []
 
-    graph_clique_obj=graphClique(input_graph,num_of_nodes)
+    def addEdge(self, node1, node2):
+      temp_edge = [node1, node2]
+      self.graph_to_visualise.append(temp_edge)
+          
+    def visualize(self):
+      cur_graph = nx.Graph()
+      cur_graph.add_edges_from(self.graph_to_visualise)
+      node_map = self.node_colors
+      nx.draw_networkx(cur_graph, node_color=node_map, edge_color="black", font_size = 16, font_color="white", node_size=800, width=2.0)
+      plt.figure(figsize=(3, 3))
+      plt.show()
 
-    stor = graph_clique_obj.maxMeshGraph()
+    def displayMesh(self):
+        for parent_node in self.graph:
+            for adj_node in self.graph[parent_node]:
+                self.addEdge(parent_node, adj_node)
+        print(self.graph)
+        self.visualize()
+'''
+
+#main program
+input_graph = dict()
+# Opening JSON file
+with open('input3.json') as json_file:
+    data = json.load(json_file)
+    for i in data:
+        j = int(i)
+        input_graph[j] = data[i]
+
+num_of_nodes= len(input_graph)
+
+graph_clique_obj = graphClique(input_graph,num_of_nodes)
+
+stor = graph_clique_obj.maxMeshGraph()
+if(stor):
+    print()
+    print("Mesh Found")
+    print()
+    print("Original graph: ",input_graph)
+    print("\nPrinting Mesh")
+    print()
     final_mesh = graph_clique_obj.mesh_graph
-    print(final_mesh)
+    print("Your Mesh: ", final_mesh)
+    print()
     graph_clique_obj.displayMesh(input_graph, final_mesh)
-    #print(graph_clique_obj.getMaxClique())
+else:
+    print()
+    print("No mesh network found")
+    print()
 
-if __name__ == "__main__":
-    testGraphClique()
+"""
+print("Visualising all the cliques")
+
+visualize_all_cliques_obj = visualizeAllCliques(input_graph, graph_clique_obj.node_colors)
+visualize_all_cliques_obj.displayMesh()"""
+
