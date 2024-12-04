@@ -1,7 +1,3 @@
-Here’s an updated README that incorporates your project description:
-
----
-
 # Graph Mesh Finder
 
 Graph Mesh Finder is a Python-based tool designed to identify mesh topologies in graph-based networks. This project aims to bridge the concepts of computer network topologies and graph theory by applying algorithms to detect a mesh structure in various network configurations.
